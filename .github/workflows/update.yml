@@ -2,7 +2,7 @@ name: Update Configs
 
 on:
   schedule:
-    - cron: "0 * * * *"  # Every 5 minutes
+    - cron: "*/5 * * * *"  # Every 5 minutes
   workflow_dispatch:
 
 permissions:
