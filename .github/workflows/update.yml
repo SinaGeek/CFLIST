@@ -1,0 +1,44 @@
+name: Update Configs
+
+on:
+  schedule:
+    - cron: "0 * * * *"  # Every 5 minutes
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create directories
+        run: |
+          mkdir -p normal
+          mkdir -p singbox
+          mkdir -p clash
+
+      - name: Download subscriptions
+        run: |
+          curl -L --fail "https://p.hima-safety.ir/sub/normal/links?app=xray" > normal/index.html
+          curl -L --fail "https://p.hima-safety.ir/sub/normal/links?app=sing-box" > singbox/index.html
+          curl -L --fail "https://p.hima-safety.ir/sub/normal/links?app=clash" > clash/index.html
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add normal/index.html singbox/index.html clash/index.html
+
+          if git diff --cached --quiet; then
+            echo "No changes"
+            exit 0
+          fi
+
+          git commit -m "Update subscriptions"
+          git push
