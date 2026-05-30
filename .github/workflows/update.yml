@@ -22,20 +22,9 @@ jobs:
 
       - name: Fetch subscriptions
         run: |
-          # NORMAL (Xray)
-          curl -L --fail --show-error \
-          "https://p.hima-safety.ir/sub/normal/links?app=xray" \
-          -o normal/index.txt
-
-          # SING-BOX
-          curl -L --fail --show-error \
-          "https://p.hima-safety.ir/sub/normal/links?app=sing-box" \
-          -o singbox/index.txt
-
-          # CLASH
-          curl -L --fail --show-error \
-          "https://p.hima-safety.ir/sub/normal/links?app=clash" \
-          -o clash/index.txt
+          curl -L --fail --show-error "https://p.hima-safety.ir/sub/normal/links?app=xray" > normal/index.txt
+          curl -L --fail --show-error "https://p.hima-safety.ir/sub/normal/links?app=sing-box" > singbox/index.txt
+          curl -L --fail --show-error "https://p.hima-safety.ir/sub/normal/links?app=clash" > clash/index.txt
 
       - name: Create HTML wrappers
         run: |
@@ -52,14 +41,12 @@ jobs:
 </head>
 <body>
 <pre id="data">Loading...</pre>
-
 <script>
 fetch("index.txt")
   .then(r => r.text())
   .then(t => document.getElementById("data").textContent = t)
   .catch(e => document.getElementById("data").textContent = e);
 </script>
-
 </body>
 </html>
 EOF
@@ -72,10 +59,7 @@ EOF
 
           git add normal singbox clash
 
-          if git diff --cached --quiet; then
-            echo "No changes"
-            exit 0
-          fi
+          git diff --cached --quiet && exit 0
 
           git commit -m "Update subscriptions"
           git push
