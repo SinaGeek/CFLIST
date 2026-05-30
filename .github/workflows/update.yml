@@ -2,7 +2,7 @@ name: Update CFLIST Subscriptions
 
 on:
   schedule:
-    - cron: "0 * * * *"   # every 1 hour
+    - cron: "0 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -17,8 +17,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Create folders
-        run: |
-          mkdir -p normal singbox clash
+        run: mkdir -p normal singbox clash
 
       - name: Fetch subscriptions
         run: |
@@ -26,31 +25,30 @@ jobs:
           curl -L --fail --show-error "https://p.hima-safety.ir/sub/normal/links?app=sing-box" > singbox/index.txt
           curl -L --fail --show-error "https://p.hima-safety.ir/sub/normal/links?app=clash" > clash/index.txt
 
-      - name: Create HTML wrappers
+      - name: Create HTML files safely
         run: |
-          for dir in normal singbox clash; do
-            cat > $dir/index.html << 'EOF'
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Subscription</title>
-  <style>
-    body { font-family: monospace; white-space: pre-wrap; padding: 20px; }
-  </style>
-</head>
-<body>
-<pre id="data">Loading...</pre>
-<script>
-fetch("index.txt")
-  .then(r => r.text())
-  .then(t => document.getElementById("data").textContent = t)
-  .catch(e => document.getElementById("data").textContent = e);
-</script>
-</body>
-</html>
-EOF
-          done
+          printf '%s\n' \
+'<!DOCTYPE html>' \
+'<html>' \
+'<head>' \
+'<meta charset="utf-8">' \
+'<title>Subscription</title>' \
+'<style>body{font-family:monospace;white-space:pre-wrap;padding:20px;}</style>' \
+'</head>' \
+'<body>' \
+'<pre id="data">Loading...</pre>' \
+'<script>' \
+'fetch("index.txt")' \
+'.then(r=>r.text())' \
+'.then(t=>document.getElementById("data").textContent=t)' \
+'.catch(e=>document.getElementById("data").textContent=e);' \
+'</script>' \
+'</body>' \
+'</html>' > template.html
+
+          cp template.html normal/index.html
+          cp template.html singbox/index.html
+          cp template.html clash/index.html
 
       - name: Commit changes
         run: |
