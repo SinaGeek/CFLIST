@@ -1,8 +1,8 @@
-name: Update Configs
+name: Update CFLIST Subscriptions
 
 on:
   schedule:
-    - cron: "*/5 * * * *"  # Every 5 minutes
+    - cron: "0 * * * *"   # every 1 hour
   workflow_dispatch:
 
 permissions:
@@ -13,27 +13,64 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Create directories
+      - name: Create folders
         run: |
-          mkdir -p normal
-          mkdir -p singbox
-          mkdir -p clash
+          mkdir -p normal singbox clash
 
-      - name: Download subscriptions
+      - name: Fetch subscriptions
         run: |
-          curl -L --fail "https://p.hima-safety.ir/sub/normal/links?app=xray" > normal/index.html
-          curl -L --fail "https://p.hima-safety.ir/sub/normal/links?app=sing-box" > singbox/index.html
-          curl -L --fail "https://p.hima-safety.ir/sub/normal/links?app=clash" > clash/index.html
+          # NORMAL (Xray)
+          curl -L --fail --show-error \
+          "https://p.hima-safety.ir/sub/normal/links?app=xray" \
+          -o normal/index.txt
 
-      - name: Commit and push if changed
+          # SING-BOX
+          curl -L --fail --show-error \
+          "https://p.hima-safety.ir/sub/normal/links?app=sing-box" \
+          -o singbox/index.txt
+
+          # CLASH
+          curl -L --fail --show-error \
+          "https://p.hima-safety.ir/sub/normal/links?app=clash" \
+          -o clash/index.txt
+
+      - name: Create HTML wrappers
+        run: |
+          for dir in normal singbox clash; do
+            cat > $dir/index.html << 'EOF'
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Subscription</title>
+  <style>
+    body { font-family: monospace; white-space: pre-wrap; padding: 20px; }
+  </style>
+</head>
+<body>
+<pre id="data">Loading...</pre>
+
+<script>
+fetch("index.txt")
+  .then(r => r.text())
+  .then(t => document.getElementById("data").textContent = t)
+  .catch(e => document.getElementById("data").textContent = e);
+</script>
+
+</body>
+</html>
+EOF
+          done
+
+      - name: Commit changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add normal/index.html singbox/index.html clash/index.html
+          git add normal singbox clash
 
           if git diff --cached --quiet; then
             echo "No changes"
