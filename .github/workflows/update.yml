@@ -58,6 +58,5 @@ jobs:
           git add normal singbox clash
 
           git diff --cached --quiet && exit 0
-
           git commit -m "Update subscriptions"
           git push
